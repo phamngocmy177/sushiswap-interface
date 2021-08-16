@@ -202,10 +202,10 @@ export function useMakerContract(): Contract | null {
   return useContract(chainId && MAKER_ADDRESS[chainId], MAKER_ABI, false)
 }
 
-export function useTimelockContract(): Contract | null {
-  const { chainId } = useActiveWeb3React()
-  return useContract(chainId && TIMELOCK_ADDRESS[chainId], TIMELOCK_ABI, false)
-}
+// export function useTimelockContract(): Contract | null {
+//   const { chainId } = useActiveWeb3React()
+//   return useContract(chainId && TIMELOCK_ADDRESS[chainId], TIMELOCK_ABI, false)
+// }
 
 export function useBentoBoxContract(withSignerIfPossible?: boolean): Contract | null {
   const { chainId } = useActiveWeb3React()
