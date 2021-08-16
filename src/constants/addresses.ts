@@ -4,6 +4,11 @@ type AddressMap = { [chainId: number]: string }
 
 // export const TIMELOCK_ADDRESS = '0x1a9C8182C09F50C8318d769245beA52c32BE35BC'
 
+export const ROUTER_ADDRESS: AddressMap = {
+  [ChainId.BSC]: "0x9Fb8fF47Db2A57f43D3589eD8c16AF4f5FcCc5f8",
+  [ChainId.MATIC]: "0x8d2f05149a4232efbc9ffca1190b079a71c6ba0a"
+}
+
 export const ARCHER_ROUTER_ADDRESS: AddressMap = {
   [ChainId.MAINNET]: '0x9917C083FF9FbD29Df1367FBF7F2388A9a202431',
 }

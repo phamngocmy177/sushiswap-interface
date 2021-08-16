@@ -9,11 +9,11 @@ import {
   FACTORY_ADDRESS,
   MAKER_ADDRESS,
   MASTERCHEF_ADDRESS,
-  ROUTER_ADDRESS,
   SUSHI_ADDRESS,
   TIMELOCK_ADDRESS,
   WNATIVE,
 } from '@sushiswap/sdk'
+import { ROUTER_ADDRESS } from "../constants/addresses";
 import {
   BENTOBOX_ADDRESS,
   BORING_HELPER_ADDRESS,

@@ -1,69 +1,60 @@
-import { ARCHER_RELAY_URI, ARCHER_ROUTER_ADDRESS, INITIAL_ALLOWED_SLIPPAGE } from '../../../constants'
-import { ApprovalState, useApproveCallbackFromTrade } from '../../../hooks/useApproveCallback'
-import { ArrowWrapper, BottomGrouping, SwapCallbackError } from '../../../features/swap/styleds'
-import { ButtonConfirmed, ButtonError } from '../../../components/Button'
-import { ChainId, Currency, CurrencyAmount, JSBI, Token, TradeType, Trade as V2Trade } from '@sushiswap/sdk'
-import Column, { AutoColumn } from '../../../components/Column'
+import { t } from '@lingui/macro'
+import { useLingui } from '@lingui/react'
+import { ChainId, Currency, CurrencyAmount, JSBI, Token, Trade as V2Trade, TradeType } from '@sushiswap/sdk'
+import Lottie from 'lottie-react'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { UseERC20PermitState, useERC20PermitFromTrade } from '../../../hooks/useERC20Permit'
+import ReactGA from 'react-ga'
+import swapArrowsAnimationData from '../../../animation/swap-arrows.json'
+import AddressInputPanel from '../../../components/AddressInputPanel'
+import Alert from '../../../components/Alert'
+import Button, { ButtonConfirmed, ButtonError } from '../../../components/Button'
+import Column, { AutoColumn } from '../../../components/Column'
+import Container from '../../../components/Container'
+import CurrencyInputPanel from '../../../components/CurrencyInputPanel'
+import DoubleGlowShadow from '../../../components/DoubleGlowShadow'
+import SwapHeader from '../../../components/ExchangeHeader'
+import Loader from '../../../components/Loader'
+import ProgressSteps from '../../../components/ProgressSteps'
+import Web3Connect from '../../../components/Web3Connect'
+import { ARCHER_RELAY_URI } from '../../../constants'
+import confirmPriceImpactWithoutFee from '../../../features/swap/confirmPriceImpactWithoutFee'
+import ConfirmSwapModal from '../../../features/swap/ConfirmSwapModal'
+import { BottomGrouping, SwapCallbackError } from '../../../features/swap/styleds'
+import TradePrice from '../../../features/swap/TradePrice'
+import UnsupportedCurrencyFooter from '../../../features/swap/UnsupportedCurrencyFooter'
+import { classNames } from '../../../functions'
+import { maxAmountSpend } from '../../../functions/currency'
+import { warningSeverity } from '../../../functions/prices'
+import { computeFiatValuePriceImpact } from '../../../functions/trade'
 import { useAllTokens, useCurrency } from '../../../hooks/Tokens'
+import { useActiveWeb3React } from '../../../hooks/useActiveWeb3React'
+import { ApprovalState, useApproveCallbackFromTrade } from '../../../hooks/useApproveCallback'
+import useENSAddress from '../../../hooks/useENSAddress'
+import useIsArgentWallet from '../../../hooks/useIsArgentWallet'
+import { useIsSwapUnsupported } from '../../../hooks/useIsSwapUnsupported'
+import usePrevious from '../../../hooks/usePrevious'
+import { useSwapCallback } from '../../../hooks/useSwapCallback'
+import { useUSDCValue } from '../../../hooks/useUSDCPrice'
+import useWrapCallback, { WrapType } from '../../../hooks/useWrapCallback'
+import TokenWarningModal from '../../../modals/TokenWarningModal'
+import { useNetworkModalToggle, useToggleSettingsMenu, useWalletModalToggle } from '../../../state/application/hooks'
+import { Field } from '../../../state/swap/actions'
 import {
   useDefaultsFromURLSearch,
   useDerivedSwapInfo,
   useSwapActionHandlers,
-  useSwapState,
+  useSwapState
 } from '../../../state/swap/hooks'
 import {
   useExpertModeManager,
   useUserArcherETHTip,
   useUserArcherGasPrice,
   useUserArcherUseRelay,
-  useUserSingleHopOnly,
-  useUserSlippageTolerance,
-  useUserTransactionTTL,
+  useUserSingleHopOnly, useUserTransactionTTL
 } from '../../../state/user/hooks'
-import { useNetworkModalToggle, useToggleSettingsMenu, useWalletModalToggle } from '../../../state/application/hooks'
-import useWrapCallback, { WrapType } from '../../../hooks/useWrapCallback'
 
-import AddressInputPanel from '../../../components/AddressInputPanel'
-import { AdvancedSwapDetails } from '../../../features/swap/AdvancedSwapDetails'
-import AdvancedSwapDetailsDropdown from '../../../features/swap/AdvancedSwapDetailsDropdown'
-import Alert from '../../../components/Alert'
-import { ArrowDownIcon } from '@heroicons/react/outline'
-import Button from '../../../components/Button'
-import ConfirmSwapModal from '../../../features/swap/ConfirmSwapModal'
-import Container from '../../../components/Container'
-import CurrencyInputPanel from '../../../components/CurrencyInputPanel'
-import DoubleGlowShadow from '../../../components/DoubleGlowShadow'
-import { Field } from '../../../state/swap/actions'
-import Head from 'next/head'
-import Loader from '../../../components/Loader'
-import Lottie from 'lottie-react'
-import MinerTip from '../../../components/MinerTip'
-import ProgressSteps from '../../../components/ProgressSteps'
-import ReactGA from 'react-ga'
-import SwapHeader from '../../../components/ExchangeHeader'
-import TokenWarningModal from '../../../modals/TokenWarningModal'
-import TradePrice from '../../../features/swap/TradePrice'
-import Typography from '../../../components/Typography'
-import UnsupportedCurrencyFooter from '../../../features/swap/UnsupportedCurrencyFooter'
-import Web3Connect from '../../../components/Web3Connect'
-import { classNames } from '../../../functions'
-import { computeFiatValuePriceImpact } from '../../../functions/trade'
-import confirmPriceImpactWithoutFee from '../../../features/swap/confirmPriceImpactWithoutFee'
-import { maxAmountSpend } from '../../../functions/currency'
-import swapArrowsAnimationData from '../../../animation/swap-arrows.json'
-import { t } from '@lingui/macro'
-import { useActiveWeb3React } from '../../../hooks/useActiveWeb3React'
-import useENSAddress from '../../../hooks/useENSAddress'
-import useIsArgentWallet from '../../../hooks/useIsArgentWallet'
-import { useIsSwapUnsupported } from '../../../hooks/useIsSwapUnsupported'
-import { useLingui } from '@lingui/react'
-import usePrevious from '../../../hooks/usePrevious'
-import { useRouter } from 'next/router'
-import { useSwapCallback } from '../../../hooks/useSwapCallback'
-import { useUSDCValue } from '../../../hooks/useUSDCPrice'
-import { warningSeverity } from '../../../functions/prices'
 
 export default function Swap() {
   const { i18n } = useLingui()
@@ -240,7 +231,7 @@ export default function Swap() {
 
   // check if user has gone through approval process, used to show two step buttons, reset on token change
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
-
+  console.log("approvalState", approvalState)
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {
     if (approvalState === ApprovalState.PENDING) {
